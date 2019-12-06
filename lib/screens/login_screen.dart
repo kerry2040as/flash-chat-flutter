@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             RoundedButton(
               colour: Colors.lightBlueAccent,
-              onPress: () {
+              onPressed: () {
                 //Implement login functionality.
               },
               text: 'Log In',

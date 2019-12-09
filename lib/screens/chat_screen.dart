@@ -34,20 +34,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-//  void getMessages() async {
-//    final messages = await _firestore.collection('messages').getDocuments();
-//    for (var message in messages.documents) {
-//      print(message.data);
-//    }
-//  }
-//  void getMessagesStream() async {
-//    await for (var snapshot in _firestore.collection('messages').snapshots()) {
-//      for (var message in snapshot.documents) {
-//        print(message.data);
-//      }
-//    }
-//  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,30 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            StreamBuilder<QuerySnapshot>(
-              stream: _firestore.collection('messages').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      backgroundColor: Colors.blueAccent,
-                    ),
-                  );
-                }
-                final messages = snapshot.data.documents;
-                List<Text> messagesWidgets = [];
-                for (var message in messages) {
-                  final messageText = message.data['text'];
-                  final messageSender = message.data['sender'];
-                  messagesWidgets.add(Text(
-                    '$messageText from $messageSender',
-                  ));
-                }
-                return Column(
-                  children: messagesWidgets,
-                );
-              },
-            ),
+            MessagesStream(firestore: _firestore),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -125,6 +88,82 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessagesStream extends StatelessWidget {
+  const MessagesStream({
+    Key key,
+    @required Firestore firestore,
+  })  : _firestore = firestore,
+        super(key: key);
+
+  final Firestore _firestore;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore.collection('messages').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(
+              backgroundColor: Colors.blueAccent,
+            ),
+          );
+        }
+        final messages = snapshot.data.documents;
+        List<MessageBubble> messageBubbles = [];
+        for (var message in messages) {
+          final messageText = message.data['text'];
+          final messageSender = message.data['sender'];
+          final messageBubble = MessageBubble(
+            text: messageText,
+            sender: messageSender,
+          );
+          messageBubbles.add(messageBubble);
+        }
+        return Expanded(
+          child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            children: messageBubbles,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  MessageBubble({@required this.text, @required this.sender});
+  final text;
+  final sender;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Text('$sender'),
+          Material(
+            borderRadius: BorderRadius.circular(20),
+            elevation: 3,
+            color: Colors.lightBlue,
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    '$text',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

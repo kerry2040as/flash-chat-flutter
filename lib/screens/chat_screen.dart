@@ -14,6 +14,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _firestore = Firestore.instance;
   FirebaseUser loggedInUser;
   String messageText;
+  final textMessageController = TextEditingController();
 
   @override
   void initState() {
@@ -43,7 +44,6 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-//                getMessagesStream();
                 _auth.signOut();
                 Navigator.pop(context);
               }),
@@ -64,6 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller: textMessageController,
                       onChanged: (value) {
                         messageText = value;
                       },
@@ -72,6 +73,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
+                      setState(() {
+                        textMessageController.clear();
+                      });
+
                       //Implement send functionality.
                       _firestore.collection('messages').add({
                         'text': messageText,
